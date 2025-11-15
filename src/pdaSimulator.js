@@ -50,7 +50,7 @@ export class PDASimulator {
         return { accepted: true, path: successPath };
       }
 
-      if (input === '' && stack.length === 1 && stack[0] === 'Z' && state === 'q0') {
+      if (input === '' && stack.length === 1 && stack[0] === 'Z') {
         const successPath = [...path, {
           state,
           input: '',
@@ -58,7 +58,7 @@ export class PDASimulator {
           depth,
           transition: null,
           status: 'success',
-          message: 'Строка принята! Состояние q0, стек содержит только маркер Z, входная строка обработана полностью.'
+          message: `Строка принята! Состояние ${state}, стек содержит только маркер Z, входная строка обработана полностью.`
         }];
         return { accepted: true, path: successPath };
       }
