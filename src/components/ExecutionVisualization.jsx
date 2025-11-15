@@ -53,7 +53,7 @@ export default function ExecutionVisualization({ result }) {
       {path && path.length > 0 && (
         <div className="execution-path">
           <div className="execution-path-title">
-            {accepted ? 'Успешный путь выполнения:' : 'Основной путь выполнения:'}
+            {accepted ? 'Успешный путь выполнения:' : 'Путь выполнения #1:'}
           </div>
           {path.map((step, index) => renderStep(step, index))}
         </div>
@@ -62,13 +62,13 @@ export default function ExecutionVisualization({ result }) {
       {!accepted && allPaths && allPaths.length > 1 && (
         <div className="execution-path" style={{ marginTop: '30px' }}>
           <div className="execution-path-title">
-            Исследовано альтернативных путей: {allPaths.length}
+            Всего исследовано путей: {allPaths.length}
           </div>
           <div style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
-            Автомат пытался найти правильный путь, но все варианты привели к неудаче.
-            Показан наиболее продвинутый путь выше.
+            Автомат пытался найти правильный путь через все возможные ветви выполнения.
+            Ниже показаны все альтернативные пути.
           </div>
-          {allPaths.slice(1, 4).map((pathInfo, pathIndex) => (
+          {allPaths.slice(1).map((pathInfo, pathIndex) => (
             <details key={pathIndex} style={{ marginBottom: '15px' }}>
               <summary style={{ cursor: 'pointer', fontWeight: 600, padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
                 Альтернативный путь #{pathIndex + 2} - {pathInfo.reason}
@@ -78,11 +78,17 @@ export default function ExecutionVisualization({ result }) {
               </div>
             </details>
           ))}
-          {allPaths.length > 4 && (
-            <div style={{ fontSize: '13px', color: '#888', fontStyle: 'italic', marginTop: '10px' }}>
-              ...и ещё {allPaths.length - 4} путей были исследованы
-            </div>
-          )}
+        </div>
+      )}
+
+      {accepted && (
+        <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#d4edda', borderRadius: '6px', borderLeft: '4px solid #28a745' }}>
+          <div style={{ fontWeight: 600, marginBottom: '10px', color: '#155724' }}>
+            🎉 Поздравляем!
+          </div>
+          <div style={{ color: '#155724' }}>
+            Строка успешно принята автоматом. Все символы обработаны и достигнуто корректное финальное состояние.
+          </div>
         </div>
       )}
     </div>
