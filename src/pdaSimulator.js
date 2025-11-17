@@ -19,19 +19,56 @@ export class PDASimulator {
     ).join('::');
   }
 
+  isPathPrefix(shortPath, longPath) {
+    if (shortPath.length >= longPath.length) return false;
+    
+    for (let i = 0; i < shortPath.length; i++) {
+      const shortStep = shortPath[i];
+      const longStep = longPath[i];
+      
+      if (shortStep.state !== longStep.state ||
+          shortStep.input !== longStep.input ||
+          (shortStep.stack || []).join(',') !== (longStep.stack || []).join(',') ||
+          shortStep.status !== longStep.status) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
   deduplicatePaths(allPaths) {
     const seenPaths = new Set();
+    const pathSerializations = new Map();
     const uniquePaths = [];
     
     for (const pathObj of allPaths) {
       const serialized = this.serializePath(pathObj.path);
       if (!seenPaths.has(serialized)) {
         seenPaths.add(serialized);
+        pathSerializations.set(serialized, pathObj);
         uniquePaths.push(pathObj);
       }
     }
     
-    return uniquePaths;
+    const result = [];
+    for (const pathObj of uniquePaths) {
+      let isPrefixOfAnother = false;
+      
+      for (const otherPathObj of uniquePaths) {
+        if (pathObj === otherPathObj) continue;
+        if (this.isPathPrefix(pathObj.path, otherPathObj.path)) {
+          isPrefixOfAnother = true;
+          break;
+        }
+      }
+      
+      if (!isPrefixOfAnother) {
+        result.push(pathObj);
+      }
+    }
+    
+    return result;
   }
 
   simulate(inputString) {
