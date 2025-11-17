@@ -13,6 +13,27 @@ export class PDASimulator {
     );
   }
 
+  serializePath(path) {
+    return path.map(step => 
+      `${step.state}|${step.input}|${(step.stack || []).join(',')}|${step.status}`
+    ).join('::');
+  }
+
+  deduplicatePaths(allPaths) {
+    const seenPaths = new Set();
+    const uniquePaths = [];
+    
+    for (const pathObj of allPaths) {
+      const serialized = this.serializePath(pathObj.path);
+      if (!seenPaths.has(serialized)) {
+        seenPaths.add(serialized);
+        uniquePaths.push(pathObj);
+      }
+    }
+    
+    return uniquePaths;
+  }
+
   simulate(inputString) {
     const initialStack = ['Z'];
     const initialState = 'q0';
@@ -216,10 +237,12 @@ export class PDASimulator {
 
     const result = explore(initialState, inputString, initialStack, initialPath);
     
+    const uniquePaths = this.deduplicatePaths(allPaths);
+    
     return {
       accepted: result.accepted,
-      path: result.accepted ? result.path : (allPaths.length > 0 ? allPaths[0].path : initialPath),
-      allPaths: result.accepted ? [] : allPaths,
+      path: result.accepted ? result.path : (uniquePaths.length > 0 ? uniquePaths[0].path : initialPath),
+      allPaths: result.accepted ? [] : uniquePaths,
       reason: result.reason
     };
   }
