@@ -198,32 +198,27 @@ export class PDASimulator {
       }
 
       const possibleTransitions = this.findTransitions(state, currentSymbol, stackTop);
-      let allTransitions = possibleTransitions;
+      const allTransitions = possibleTransitions;
 
       if (allTransitions.length === 0) {
-        const lambdaTransitions = this.findTransitions(state, 'λ', stackTop);
-        if (lambdaTransitions.length > 0) {
-          allTransitions = lambdaTransitions;
-        } else {
-          const failPath = [...path, {
-            state,
-            input,
-            stack: [...stack],
-            depth,
-            transition: null,
-            status: 'failed',
-            message: `Нет подходящего перехода для (${state}, ${currentSymbol}, ${stackTop})`
-          }];
-          allPaths.push({
-            path: failPath,
-            reason: `Не найден переход для состояния ${state}, символа '${currentSymbol}' и вершины стека '${stackTop}'`
-          });
-          return { 
-            accepted: false, 
-            reason: `Нет перехода для (${state}, ${currentSymbol}, ${stackTop})`,
-            path: failPath
-          };
-        }
+        const failPath = [...path, {
+          state,
+          input,
+          stack: [...stack],
+          depth,
+          transition: null,
+          status: 'failed',
+          message: `Нет подходящего перехода для (${state}, ${currentSymbol}, ${stackTop})`
+        }];
+        allPaths.push({
+          path: failPath,
+          reason: `Не найден переход для состояния ${state}, символа '${currentSymbol}' и вершины стека '${stackTop}'`
+        });
+        return { 
+          accepted: false, 
+          reason: `Нет перехода для (${state}, ${currentSymbol}, ${stackTop})`,
+          path: failPath
+        };
       }
 
       for (const transition of allTransitions) {
