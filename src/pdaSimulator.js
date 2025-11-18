@@ -13,6 +13,64 @@ export class PDASimulator {
     );
   }
 
+  serializePath(path) {
+    return path.map(step => 
+      `${step.state}|${step.input}|${(step.stack || []).join(',')}|${step.status}`
+    ).join('::');
+  }
+
+  isPathPrefix(shortPath, longPath) {
+    if (shortPath.length >= longPath.length) return false;
+    
+    for (let i = 0; i < shortPath.length; i++) {
+      const shortStep = shortPath[i];
+      const longStep = longPath[i];
+      
+      if (shortStep.state !== longStep.state ||
+          shortStep.input !== longStep.input ||
+          (shortStep.stack || []).join(',') !== (longStep.stack || []).join(',') ||
+          shortStep.status !== longStep.status) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  deduplicatePaths(allPaths) {
+    const seenPaths = new Set();
+    const pathSerializations = new Map();
+    const uniquePaths = [];
+    
+    for (const pathObj of allPaths) {
+      const serialized = this.serializePath(pathObj.path);
+      if (!seenPaths.has(serialized)) {
+        seenPaths.add(serialized);
+        pathSerializations.set(serialized, pathObj);
+        uniquePaths.push(pathObj);
+      }
+    }
+    
+    const result = [];
+    for (const pathObj of uniquePaths) {
+      let isPrefixOfAnother = false;
+      
+      for (const otherPathObj of uniquePaths) {
+        if (pathObj === otherPathObj) continue;
+        if (this.isPathPrefix(pathObj.path, otherPathObj.path)) {
+          isPrefixOfAnother = true;
+          break;
+        }
+      }
+      
+      if (!isPrefixOfAnother) {
+        result.push(pathObj);
+      }
+    }
+    
+    return result;
+  }
+
   simulate(inputString) {
     const initialStack = ['Z'];
     const initialState = 'q0';
@@ -45,20 +103,7 @@ export class PDASimulator {
           depth,
           transition: null,
           status: 'success',
-          message: `Строка принята! Достигнуто состояние ${state}, стек пуст, входная строка обработана полностью.`
-        }];
-        return { accepted: true, path: successPath };
-      }
-
-      if (input === '' && stack.length === 1 && stack[0] === 'Z') {
-        const successPath = [...path, {
-          state,
-          input: '',
-          stack: [...stack],
-          depth,
-          transition: null,
-          status: 'success',
-          message: `Строка принята! Состояние ${state}, стек содержит только маркер Z, входная строка обработана полностью.`
+          message: `Строка принята! Входная строка полностью обработана и стек пуст.`
         }];
         return { accepted: true, path: successPath };
       }
@@ -140,8 +185,7 @@ export class PDASimulator {
       }
 
       const possibleTransitions = this.findTransitions(state, currentSymbol, stackTop);
-      const lambdaTransitions = this.findTransitions(state, 'λ', stackTop);
-      const allTransitions = [...possibleTransitions, ...lambdaTransitions];
+      const allTransitions = possibleTransitions;
 
       if (allTransitions.length === 0) {
         const failPath = [...path, {
@@ -216,10 +260,12 @@ export class PDASimulator {
 
     const result = explore(initialState, inputString, initialStack, initialPath);
     
+    const uniquePaths = this.deduplicatePaths(allPaths);
+    
     return {
       accepted: result.accepted,
-      path: result.accepted ? result.path : (allPaths.length > 0 ? allPaths[0].path : initialPath),
-      allPaths: result.accepted ? [] : allPaths,
+      path: result.accepted ? result.path : (uniquePaths.length > 0 ? uniquePaths[0].path : initialPath),
+      allPaths: result.accepted ? [] : uniquePaths,
       reason: result.reason
     };
   }
