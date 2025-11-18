@@ -103,20 +103,7 @@ export class PDASimulator {
           depth,
           transition: null,
           status: 'success',
-          message: `Строка принята! Достигнуто состояние ${state}, стек пуст, входная строка обработана полностью.`
-        }];
-        return { accepted: true, path: successPath };
-      }
-
-      if (input === '' && stack.length === 1 && stack[0] === 'Z') {
-        const successPath = [...path, {
-          state,
-          input: '',
-          stack: [...stack],
-          depth,
-          transition: null,
-          status: 'success',
-          message: `Строка принята! Состояние ${state}, стек содержит только маркер Z, входная строка обработана полностью.`
+          message: `Строка принята! Входная строка полностью обработана и стек пуст.`
         }];
         return { accepted: true, path: successPath };
       }
